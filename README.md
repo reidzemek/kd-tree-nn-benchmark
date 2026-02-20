@@ -21,7 +21,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Next, you will need to clone this repository.
 
 ```sh
-git clone https://github.com/reidzemek/icp-python.git
+git clone https://github.com/reidzemek/kd-tree-nn-benchmark.git
 ```
 
 Finally, from the repository root, you can run the following command to install the dependencies using uv.
