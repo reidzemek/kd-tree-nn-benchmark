@@ -87,13 +87,13 @@ def _(n_euclideans_downs, n_euclideans_ups, np, plt):
 def _(mo, n_euclideans_diffs, n_splits_diffs):
     mo.md(rf"""
     ### Conclusions<br>
-    **Difference in the total number of euclidean distance calculations for nearest neighbor searches across 10 target point clouds:**<br>
+    **Difference in the total number of Euclidean distance calculations for nearest neighbor searches across 10 target point clouds:**<br>
     {n_euclideans_diffs}<br>
     **Difference in the total number of splitting distance calculations for nearest neighbor searches across 10 target point clouds:**<br>
     {n_splits_diffs}
 
-    Though subtle, it is clear that computing the euclidean distance and updating the best point on the downward pass leads to additional
-    pruning of the tree and a reduction in the total number of euclidean and splitting distance calculations during tree traversal of the
+    Though subtle, computing the Euclidean distance and updating the best point on the downward pass leads to additional
+    pruning of the tree and a reduction in the total number of Euclidean and splitting distance calculations during tree traversal of the
     nearest neighbor search.
     """)
     return

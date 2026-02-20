@@ -32,11 +32,11 @@ uv sync
 
 ## Adding the data
 
-Due to the sensitivity of the data, is it not included here. You will need to copy the directory into the repository root from sharepoint.
+Due to the sensitivity of the data, is it not included here. You will need to copy the directory into the repository root from SharePoint.
 
 ## Running the code
 
-Now, to run the code, you need to start by activating the python virtual environment created for you by uv.
+To run the code, you need to start by activating the python virtual environment created for you by uv.
 
 Again, in the repository root, you can run the following command.
 
