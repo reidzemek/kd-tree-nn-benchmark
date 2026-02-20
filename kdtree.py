@@ -56,7 +56,6 @@ def build(Q: np.ndarray) -> Tuple[Node, ...]:
         Returns:
             int: Index of this node in the nodes list.
         """
-
         nonlocal idx
 
         # Empty child
@@ -91,7 +90,11 @@ def build(Q: np.ndarray) -> Tuple[Node, ...]:
     # Return the tree as a tuple
     return tuple(nodes)
 
-def nn_search(tree: Tuple[Node, ...], P: np.ndarray) -> np.ndarray:
+def nn_search(
+    tree: Tuple[Node, ...],
+    P: np.ndarray,
+    down_eval: bool=True
+) -> np.ndarray:
     """Find nearest neighbors in a k-d tree for each point in a point cloud.
 
     Args:
@@ -100,11 +103,20 @@ def nn_search(tree: Tuple[Node, ...], P: np.ndarray) -> np.ndarray:
             as returned by `build_kd_tree`.
 
     Returns:
-        Q_nearest (np.ndarray): Array of shape (N, 3) containing the nearest neighbors
-            for each point in P.
+        tuple: `Q_nearest` and `[n_euclidean, n_split]` outlined below.
+
+        **Q_nearest** :  *np.ndarray*<br>
+        Array of shape (N, 3) containing the nearest neighbors for each point in P.
+
+        **[n_euclidean, n_split]** : *list*<br>
+        List containing counts for the total number of euclidean (`n_euclidean`) and
+        split (`n_split`) distance calculations.
     """
 
     Q_nearest = np.empty_like(P)
+
+    n_euclideans = [0]*P.shape[0]
+    n_splits = [0]*P.shape[0]
 
     def _nn_search(
         point:np.ndarray,
@@ -119,9 +131,10 @@ def nn_search(tree: Tuple[Node, ...], P: np.ndarray) -> np.ndarray:
             best (Tuple[int, float]): Tuple containing the index of the best node
                 found so far and its squared distance.
 
-        Returns:
+        Returns:            
             best (Tuple[int, float]): Updated best node index and squared distance.
         """
+        nonlocal n_euclidean, n_split, down_eval
 
         # Leaf node
         if node_idx is None:
@@ -130,11 +143,26 @@ def nn_search(tree: Tuple[Node, ...], P: np.ndarray) -> np.ndarray:
         # Current node
         node = tree[node_idx]
         node_point = np.array(node.point)
-        dist_sq = np.sum((point - node_point) ** 2)
 
-        # Update best if current node is closer
-        if dist_sq < best[1]:
-            best = (node_idx, dist_sq)
+        def _euclidean_distance(best):
+            """Helper function to calculate the current euclidean distance and update
+            the best point.
+            """
+            nonlocal point, node_point, n_euclidean
+
+            # Calculate the current euclidean distance
+            dist_sq = np.sum((point - node_point) ** 2)
+            n_euclidean += 1
+
+            # Update best if current node is closer
+            if dist_sq < best[1]:
+                best = (node_idx, dist_sq)
+
+            return best
+
+        # Compute the euclidean distance and update best on the down traversal
+        if down_eval:
+            best = _euclidean_distance(best)
 
         # Check on which side of the current nodes splitting axis the point lies
         if point[node.axis] < node_point[node.axis]:
@@ -145,15 +173,33 @@ def nn_search(tree: Tuple[Node, ...], P: np.ndarray) -> np.ndarray:
         # Explore the near sub-tree
         best = _nn_search(point, near, best)
 
+        # Compute the euclidean distance and update best on the up traversal
+        if not down_eval:
+            best = _euclidean_distance(best)
+
         # Determine if we need to explore the far sub-tree
-        if (point[node.axis] - node_point[node.axis]) ** 2 < best[1]:
+        split = (point[node.axis] - node_point[node.axis]) ** 2     # split distance
+        n_split += 1
+        if split < best[1]:
             best = _nn_search(point, far, best)
 
         return best
-    
+
     # Find the nearest point for each point in P
     for i in range(P.shape[0]):
+
+        # Counters to track the number of euclidean and split distance calculations
+        n_euclidean = 0
+        n_split = 0
+
+        # Fine the nearest neighbor in Q for the current point in P
         best_idx, _ = _nn_search(P[i], 0, (None, float("inf")))
+
+        # Add the nearest point to the new point cloud
         Q_nearest[i] = np.array(tree[best_idx].point)
 
-    return Q_nearest
+        # Add the total euclidean and split distance calculations counts to the output
+        n_euclideans[i] = n_euclidean
+        n_splits[i] = n_split
+
+    return Q_nearest, [n_euclideans, n_splits]
