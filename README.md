@@ -12,7 +12,7 @@ For a package manager, we will use [uv](https://docs.astral.sh/uv/) since it is 
 
 **The remainder of these instructions assume a Unix-like shell environment (e.g., Linux, macOS, or WSL).**
 
-To installed uv, you can use the following command (taken from the uv homepage).
+To install uv, you can use the following command (taken from the uv homepage).
 
 ```sh
 curl -LsSf https://astral.sh/uv/install.sh | sh
